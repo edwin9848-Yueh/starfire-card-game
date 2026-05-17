@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>星火牌局</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111317;
+      --panel: #191d23;
+      --panel-2: #202631;
+      --ink: #f3f0e8;
+      --muted: #aeb5bf;
+      --line: #333b47;
+      --red: #e55b55;
+      --gold: #f0bc56;
+      --green: #60c891;
+      --blue: #62a8ff;
+      --violet: #b58cff;
+      --shadow: 0 18px 40px rgba(0, 0, 0, .32);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(240, 188, 86, .12), transparent 28rem),
+        radial-gradient(circle at 84% 18%, rgba(98, 168, 255, .14), transparent 24rem),
+        linear-gradient(135deg, #0e1214 0%, #15161c 52%, #1d1817 100%);
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    .app {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 22px 0 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .topbar,
+    .arena,
+    .hand-zone,
+    .log-panel {
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: rgba(25, 29, 35, .88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar {
+      min-height: 68px;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(from 210deg, #f0bc56, #e55b55, #62a8ff, #60c891, #f0bc56);
+      color: #14171b;
+      font-weight: 900;
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .24);
+      flex: 0 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 4vw, 34px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      min-height: 36px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .04);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .pill strong {
+      color: var(--ink);
+    }
+
+    .arena {
+      border-radius: 8px;
+      min-height: 420px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(230px, 1fr) minmax(220px, .72fr) minmax(230px, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .combatant {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .025));
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .combatant::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255, 255, 255, .08), transparent 28%, transparent 70%, rgba(255, 255, 255, .04));
+      pointer-events: none;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .name-row h2 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    .intent {
+      padding: 7px 9px;
+      border-radius: 8px;
+      color: #15171a;
+      background: var(--gold);
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      min-height: 190px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .figure {
+      width: min(76%, 220px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: clamp(68px, 11vw, 118px);
+      background:
+        radial-gradient(circle at 38% 28%, rgba(255, 255, 255, .34), transparent 18%),
+        linear-gradient(145deg, rgba(98, 168, 255, .9), rgba(96, 200, 145, .75));
+      box-shadow: inset -18px -24px 44px rgba(0, 0, 0, .3), 0 22px 56px rgba(0, 0, 0, .35);
+      transition: transform .18s ease;
+    }
+
+    .enemy .figure {
+      background:
+        radial-gradient(circle at 38% 28%, rgba(255, 255, 255, .28), transparent 18%),
+        linear-gradient(145deg, rgba(229, 91, 85, .95), rgba(240, 188, 86, .72));
+    }
+
+    .hit .figure {
+      animation: hit .3s ease;
+    }
+
+    @keyframes hit {
+      0%, 100% { transform: translateX(0) scale(1); }
+      30% { transform: translateX(-10px) scale(.98); }
+      60% { transform: translateX(8px) scale(1.02); }
+    }
+
+    .bars {
+      display: grid;
+      gap: 9px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .meter {
+      height: 13px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, .35);
+      border: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .fill {
+      height: 100%;
+      width: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--red), #ff9d68);
+      transition: width .22s ease;
+    }
+
+    .shield-fill {
+      background: linear-gradient(90deg, var(--blue), #9cd3ff);
+    }
+
+    .center {
+      display: grid;
+      gap: 12px;
+      align-content: center;
+      min-width: 0;
+    }
+
+    .turn-card {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .04);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .round {
+      color: var(--muted);
+      font-weight: 900;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .energy {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      min-height: 36px;
+      align-items: center;
+    }
+
+    .bolt {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--gold);
+      color: #191713;
+      font-weight: 950;
+      box-shadow: 0 8px 22px rgba(240, 188, 86, .26);
+    }
+
+    .bolt.empty {
+      background: rgba(255, 255, 255, .07);
+      color: rgba(255, 255, 255, .28);
+      box-shadow: none;
+    }
+
+    .primary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .btn {
+      min-height: 42px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .055));
+      color: var(--ink);
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, .28);
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      color: rgba(255, 255, 255, .35);
+      background: rgba(255, 255, 255, .035);
+    }
+
+    .btn.end {
+      background: linear-gradient(180deg, rgba(96, 200, 145, .28), rgba(96, 200, 145, .12));
+      border-color: rgba(96, 200, 145, .36);
+    }
+
+    .draw-piles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .pile {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      min-height: 70px;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, .05) 0 8px, transparent 8px 16px);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .pile strong {
+      display: block;
+      color: var(--ink);
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .hand-zone {
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 242px;
+    }
+
+    .hand-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .hand {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 11px;
+      min-height: 178px;
+    }
+
+    .card {
+      position: relative;
+      min-height: 176px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f7f1e8, #d9d2c4);
+      color: #15171a;
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, .26);
+      transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1px solid rgba(20, 23, 26, .14);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 24px 40px rgba(0, 0, 0, .32);
+    }
+
+    .card.unplayable {
+      filter: grayscale(.7) brightness(.72);
+      cursor: not-allowed;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cost {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #191713;
+      color: var(--gold);
+      font-weight: 950;
+      flex: 0 0 auto;
+    }
+
+    .type {
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(20, 23, 26, .62);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+      align-self: end;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card p {
+      margin: 0;
+      font-weight: 750;
+      color: rgba(20, 23, 26, .78);
+      line-height: 1.35;
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card.attack { background: linear-gradient(180deg, #ffe4dc, #eac0b3); }
+    .card.skill { background: linear-gradient(180deg, #e1f5ff, #b8d7e5); }
+    .card.power { background: linear-gradient(180deg, #ece0ff, #c9b7e4); }
+    .card.heal { background: linear-gradient(180deg, #dff7e7, #afd9be); }
+
+    .log-panel {
+      border-radius: 8px;
+      min-height: 92px;
+      max-height: 132px;
+      padding: 10px 12px;
+      overflow: auto;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .log-panel b {
+      color: var(--ink);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(0, 0, 0, .62);
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .overlay.show {
+      display: grid;
+    }
+
+    .modal {
+      width: min(440px, 100%);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: #1b2028;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    .modal p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 920px) {
+      .arena {
+        grid-template-columns: 1fr;
+      }
+
+      .center {
+        order: -1;
+      }
+
+      .hand {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        width: min(100vw - 18px, 1180px);
+        padding-top: 10px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .stats {
+        justify-content: flex-start;
+      }
+
+      .arena,
+      .hand-zone {
+        padding: 10px;
+      }
+
+      .hand {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        min-height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">S</div>
+        <div>
+          <h1>星火牌局</h1>
+          <div class="subtitle">用有限能量打牌，击败三名守门人</div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="pill">层数 <strong id="stage">1 / 3</strong></div>
+        <div class="pill">连击 <strong id="combo">0</strong></div>
+        <div class="pill">牌组 <strong id="deckCount">0</strong></div>
+      </div>
+    </header>
+
+    <section class="arena" aria-live="polite">
+      <article class="combatant player" id="playerBox">
+        <div class="name-row">
+          <h2>旅人</h2>
+          <span class="intent" id="playerState">准备</span>
+        </div>
+        <div class="avatar">
+          <div class="figure">◆</div>
+        </div>
+        <div class="bars">
+          <div>
+            <div class="meter-label"><span>生命</span><span id="playerHpText"></span></div>
+            <div class="meter"><div class="fill" id="playerHp"></div></div>
+          </div>
+          <div>
+            <div class="meter-label"><span>护盾</span><span id="playerBlockText"></span></div>
+            <div class="meter"><div class="fill shield-fill" id="playerBlock"></div></div>
+          </div>
+        </div>
+      </article>
+
+      <section class="center">
+        <div class="turn-card">
+          <div class="round" id="turnText">你的回合</div>
+          <div class="energy" id="energy"></div>
+          <div class="primary-actions">
+            <button class="btn end" id="endTurnBtn">结束回合</button>
+            <button class="btn" id="restartBtn">重开</button>
+          </div>
+        </div>
+        <div class="draw-piles">
+          <div class="pile"><span><strong id="drawCount">0</strong>抽牌堆</span></div>
+          <div class="pile"><span><strong id="handCount">0</strong>手牌</span></div>
+          <div class="pile"><span><strong id="discardCount">0</strong>弃牌堆</span></div>
+        </div>
+      </section>
+
+      <article class="combatant enemy" id="enemyBox">
+        <div class="name-row">
+          <h2 id="enemyName">灰烬卫士</h2>
+          <span class="intent" id="enemyIntent">攻击 8</span>
+        </div>
+        <div class="avatar">
+          <div class="figure" id="enemyIcon">▲</div>
+        </div>
+        <div class="bars">
+          <div>
+            <div class="meter-label"><span>生命</span><span id="enemyHpText"></span></div>
+            <div class="meter"><div class="fill" id="enemyHp"></div></div>
+          </div>
+          <div>
+            <div class="meter-label"><span>护盾</span><span id="enemyBlockText"></span></div>
+            <div class="meter"><div class="fill shield-fill" id="enemyBlock"></div></div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="hand-zone">
+      <div class="hand-head">
+        <span>手牌</span>
+        <span>点击卡牌打出，费用不能超过当前能量</span>
+      </div>
+      <div class="hand" id="hand"></div>
+    </section>
+
+    <section class="log-panel" id="log"></section>
+  </main>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2 id="modalTitle">胜利</h2>
+      <p id="modalText">你点燃了最后一张星火牌。</p>
+      <button class="btn end" id="modalBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    const cardLibrary = [
+      { id: "strike", name: "迅击", type: "attack", label: "攻击", cost: 1, text: "造成 7 点伤害。", play: s => damageEnemy(s, 7) },
+      { id: "guard", name: "架盾", type: "skill", label: "技能", cost: 1, text: "获得 8 点护盾。", play: s => gainBlock(s.player, 8) },
+      { id: "spark", name: "星火", type: "attack", label: "攻击", cost: 0, text: "造成 3 点伤害，抽 1 张牌。", play: s => { damageEnemy(s, 3); drawCards(s, 1); } },
+      { id: "focus", name: "凝神", type: "power", label: "战术", cost: 1, text: "抽 2 张牌。", play: s => drawCards(s, 2) },
+      { id: "riposte", name: "反制", type: "skill", label: "技能", cost: 2, text: "获得 7 点护盾，并造成等量伤害。", play: s => { gainBlock(s.player, 7); damageEnemy(s, 7); } },
+      { id: "flare", name: "耀斩", type: "attack", label: "攻击", cost: 2, text: "造成 13 点伤害。", play: s => damageEnemy(s, 13) },
+      { id: "mend", name: "回春", type: "heal", label: "恢复", cost: 1, text: "恢复 6 点生命。", play: s => heal(s.player, 6) },
+      { id: "surge", name: "充能", type: "power", label: "战术", cost: 0, text: "获得 1 点能量。", play: s => { s.energy = Math.min(5, s.energy + 1); log("星火回流，获得 <b>1</b> 点能量。"); } },
+      { id: "breaker", name: "破甲", type: "attack", label: "攻击", cost: 1, text: "造成 5 点伤害，移除敌方护盾。", play: s => { s.enemy.block = 0; damageEnemy(s, 5); } },
+      { id: "bulwark", name: "壁垒", type: "skill", label: "技能", cost: 2, text: "获得 15 点护盾。", play: s => gainBlock(s.player, 15) }
+    ];
+
+    const enemies = [
+      { name: "灰烬卫士", icon: "▲", maxHp: 46, damage: [7, 9, 11], block: 8 },
+      { name: "镜刃术士", icon: "✦", maxHp: 58, damage: [8, 10, 14], block: 10 },
+      { name: "熔星巨像", icon: "●", maxHp: 78, damage: [10, 13, 17], block: 12 }
+    ];
+
+    const els = {
+      stage: document.querySelector("#stage"),
+      combo: document.querySelector("#combo"),
+      deckCount: document.querySelector("#deckCount"),
+      playerState: document.querySelector("#playerState"),
+      playerHpText: document.querySelector("#playerHpText"),
+      playerHp: document.querySelector("#playerHp"),
+      playerBlockText: document.querySelector("#playerBlockText"),
+      playerBlock: document.querySelector("#playerBlock"),
+      enemyName: document.querySelector("#enemyName"),
+      enemyIntent: document.querySelector("#enemyIntent"),
+      enemyIcon: document.querySelector("#enemyIcon"),
+      enemyHpText: document.querySelector("#enemyHpText"),
+      enemyHp: document.querySelector("#enemyHp"),
+      enemyBlockText: document.querySelector("#enemyBlockText"),
+      enemyBlock: document.querySelector("#enemyBlock"),
+      turnText: document.querySelector("#turnText"),
+      energy: document.querySelector("#energy"),
+      hand: document.querySelector("#hand"),
+      drawCount: document.querySelector("#drawCount"),
+      handCount: document.querySelector("#handCount"),
+      discardCount: document.querySelector("#discardCount"),
+      log: document.querySelector("#log"),
+      endTurnBtn: document.querySelector("#endTurnBtn"),
+      restartBtn: document.querySelector("#restartBtn"),
+      overlay: document.querySelector("#overlay"),
+      modalTitle: document.querySelector("#modalTitle"),
+      modalText: document.querySelector("#modalText"),
+      modalBtn: document.querySelector("#modalBtn"),
+      playerBox: document.querySelector("#playerBox"),
+      enemyBox: document.querySelector("#enemyBox")
+    };
+
+    let state;
+
+    function cloneCard(id) {
+      const base = cardLibrary.find(card => card.id === id);
+      return { ...base, uid: crypto.randomUUID() };
+    }
+
+    function shuffle(cards) {
+      const arr = [...cards];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function startGame() {
+      state = {
+        stage: 0,
+        round: 1,
+        maxEnergy: 3,
+        energy: 3,
+        combo: 0,
+        player: { hp: 70, maxHp: 70, block: 0 },
+        enemy: null,
+        draw: [],
+        hand: [],
+        discard: [],
+        intent: null,
+        playing: true
+      };
+
+      const starter = [
+        "strike", "strike", "strike", "strike",
+        "guard", "guard", "spark", "focus",
+        "riposte", "flare", "mend", "surge"
+      ].map(cloneCard);
+
+      state.draw = shuffle(starter);
+      setupEnemy();
+      drawCards(state, 5, false);
+      log("牌局开始。敌人正在观察你的节奏。", true);
+      render();
+    }
+
+    function setupEnemy() {
+      const template = enemies[state.stage];
+      state.enemy = {
+        name: template.name,
+        icon: template.icon,
+        hp: template.maxHp,
+        maxHp: template.maxHp,
+        block: 0,
+        damage: template.damage,
+        blockMove: template.block
+      };
+      chooseIntent();
+    }
+
+    function chooseIntent() {
+      const roll = Math.random();
+      if (roll < .68) {
+        const amount = state.enemy.damage[Math.floor(Math.random() * state.enemy.damage.length)];
+        state.intent = { type: "attack", amount, text: `攻击 ${amount}` };
+      } else {
+        state.intent = { type: "block", amount: state.enemy.blockMove, text: `护盾 ${state.enemy.blockMove}` };
+      }
+    }
+
+    function drawCards(s, count, announce = true) {
+      for (let i = 0; i < count; i++) {
+        if (!s.draw.length) {
+          if (!s.discard.length) break;
+          s.draw = shuffle(s.discard);
+          s.discard = [];
+          if (announce) log("弃牌堆洗回抽牌堆。");
+        }
+        if (s.hand.length >= 7) break;
+        s.hand.push(s.draw.pop());
+      }
+      render();
+    }
+
+    function damageEnemy(s, amount) {
+      dealDamage(s.enemy, amount, els.enemyBox);
+      log(`你造成 <b>${amount}</b> 点伤害。`);
+    }
+
+    function dealDamage(target, amount, box) {
+      const blocked = Math.min(target.block, amount);
+      target.block -= blocked;
+      target.hp = Math.max(0, target.hp - (amount - blocked));
+      box.classList.remove("hit");
+      void box.offsetWidth;
+      box.classList.add("hit");
+    }
+
+    function gainBlock(target, amount) {
+      target.block += amount;
+      log(`获得 <b>${amount}</b> 点护盾。`);
+    }
+
+    function heal(target, amount) {
+      const before = target.hp;
+      target.hp = Math.min(target.maxHp, target.hp + amount);
+      log(`恢复 <b>${target.hp - before}</b> 点生命。`);
+    }
+
+    function playCard(uid) {
+      if (!state.playing) return;
+      const index = state.hand.findIndex(card => card.uid === uid);
+      if (index === -1) return;
+      const card = state.hand[index];
+      if (card.cost > state.energy) {
+        log(`能量不足，无法打出 <b>${card.name}</b>。`);
+        return;
+      }
+
+      state.energy -= card.cost;
+      state.combo += 1;
+      state.hand.splice(index, 1);
+      state.discard.push(card);
+      log(`打出 <b>${card.name}</b>。`);
+      card.play(state);
+
+      if (state.combo > 0 && state.combo % 4 === 0) {
+        log("连击奖励：抽 <b>1</b> 张牌。");
+        drawCards(state, 1, false);
+      }
+
+      if (state.enemy.hp <= 0) {
+        winStage();
+      }
+      render();
+    }
+
+    function endTurn() {
+      if (!state.playing) return;
+      state.playing = false;
+      state.discard.push(...state.hand);
+      state.hand = [];
+      state.player.block = Math.ceil(state.player.block * .35);
+      render();
+
+      window.setTimeout(() => {
+        enemyAction();
+        if (state.player.hp <= 0) {
+          endGame(false);
+          return;
+        }
+        startPlayerTurn();
+      }, 520);
+    }
+
+    function enemyAction() {
+      if (state.intent.type === "attack") {
+        dealDamage(state.player, state.intent.amount, els.playerBox);
+        log(`${state.enemy.name} 造成 <b>${state.intent.amount}</b> 点伤害。`);
+      } else {
+        gainBlock(state.enemy, state.intent.amount);
+        log(`${state.enemy.name} 获得护盾。`);
+      }
+      render();
+    }
+
+    function startPlayerTurn() {
+      state.round += 1;
+      state.combo = 0;
+      state.energy = state.maxEnergy;
+      state.player.block = Math.ceil(state.player.block * .5);
+      chooseIntent();
+      drawCards(state, 5);
+      state.playing = true;
+      log(`第 <b>${state.round}</b> 回合。`);
+      render();
+    }
+
+    function winStage() {
+      log(`<b>${state.enemy.name}</b> 被击败。`);
+      state.stage += 1;
+
+      if (state.stage >= enemies.length) {
+        endGame(true);
+        return;
+      }
+
+      state.maxEnergy = Math.min(5, state.maxEnergy + 1);
+      heal(state.player, 10);
+      state.player.block = 0;
+      state.hand = [];
+      state.discard.push(cloneCard(["breaker", "bulwark", "flare"][state.stage - 1]));
+      setupEnemy();
+      state.energy = state.maxEnergy;
+      drawCards(state, 5);
+      log("新的卡牌加入弃牌堆，最大能量提升。");
+    }
+
+    function endGame(won) {
+      state.playing = false;
+      els.overlay.classList.add("show");
+      els.modalTitle.textContent = won ? "胜利" : "倒下了";
+      els.modalText.textContent = won
+        ? "你击败了三名守门人，星火牌组仍在发烫。"
+        : "牌堆沉寂了下来，但下一局会更锋利。";
+      render();
+    }
+
+    function log(message, reset = false) {
+      if (reset) els.log.innerHTML = "";
+      const line = document.createElement("div");
+      line.innerHTML = message;
+      els.log.prepend(line);
+    }
+
+    function pct(value, max) {
+      return `${Math.max(0, Math.min(100, (value / max) * 100))}%`;
+    }
+
+    function renderEnergy() {
+      els.energy.innerHTML = "";
+      for (let i = 0; i < state.maxEnergy; i++) {
+        const bolt = document.createElement("div");
+        bolt.className = `bolt${i >= state.energy ? " empty" : ""}`;
+        bolt.textContent = "⚡";
+        els.energy.appendChild(bolt);
+      }
+    }
+
+    function renderHand() {
+      els.hand.innerHTML = "";
+      for (const card of state.hand) {
+        const el = document.createElement("button");
+        el.className = `card ${card.type}${card.cost > state.energy || !state.playing ? " unplayable" : ""}`;
+        el.type = "button";
+        el.innerHTML = `
+          <div class="card-top">
+            <span class="cost">${card.cost}</span>
+            <span class="type">${card.label}</span>
+          </div>
+          <h3>${card.name}</h3>
+          <p>${card.text}</p>
+        `;
+        el.addEventListener("click", () => playCard(card.uid));
+        els.hand.appendChild(el);
+      }
+    }
+
+    function render() {
+      if (!state) return;
+      els.stage.textContent = `${Math.min(state.stage + 1, enemies.length)} / ${enemies.length}`;
+      els.combo.textContent = state.combo;
+      els.deckCount.textContent = state.draw.length + state.hand.length + state.discard.length;
+      els.playerState.textContent = state.playing ? "你的回合" : "敌方行动";
+      els.playerHpText.textContent = `${state.player.hp} / ${state.player.maxHp}`;
+      els.playerHp.style.width = pct(state.player.hp, state.player.maxHp);
+      els.playerBlockText.textContent = state.player.block;
+      els.playerBlock.style.width = pct(state.player.block, 30);
+
+      els.enemyName.textContent = state.enemy.name;
+      els.enemyIcon.textContent = state.enemy.icon;
+      els.enemyIntent.textContent = state.intent.text;
+      els.enemyHpText.textContent = `${state.enemy.hp} / ${state.enemy.maxHp}`;
+      els.enemyHp.style.width = pct(state.enemy.hp, state.enemy.maxHp);
+      els.enemyBlockText.textContent = state.enemy.block;
+      els.enemyBlock.style.width = pct(state.enemy.block, 30);
+
+      els.turnText.textContent = state.playing ? `第 ${state.round} 回合` : "敌方行动";
+      els.drawCount.textContent = state.draw.length;
+      els.handCount.textContent = state.hand.length;
+      els.discardCount.textContent = state.discard.length;
+      els.endTurnBtn.disabled = !state.playing;
+
+      renderEnergy();
+      renderHand();
+    }
+
+    els.endTurnBtn.addEventListener("click", endTurn);
+    els.restartBtn.addEventListener("click", () => {
+      els.overlay.classList.remove("show");
+      startGame();
+    });
+    els.modalBtn.addEventListener("click", () => {
+      els.overlay.classList.remove("show");
+      startGame();
+    });
+
+    startGame();
+  </script>
+</body>
+</html>
