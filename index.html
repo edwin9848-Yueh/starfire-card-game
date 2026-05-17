@@ -2,1015 +2,978 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>星火牌局</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>迷你角斗士</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #111317;
-      --panel: #191d23;
-      --panel-2: #202631;
-      --ink: #f3f0e8;
-      --muted: #aeb5bf;
-      --line: #333b47;
-      --red: #e55b55;
-      --gold: #f0bc56;
-      --green: #60c891;
-      --blue: #62a8ff;
-      --violet: #b58cff;
-      --shadow: 0 18px 40px rgba(0, 0, 0, .32);
+      --ink: #f7f2e8;
+      --muted: #c9c1b2;
+      --gold: #f1bf5b;
+      --red: #e65a54;
+      --green: #65cf92;
+      --blue: #6ba9ff;
+      --panel: rgba(22, 24, 28, .76);
+      --line: rgba(255, 255, 255, .14);
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+      user-select: none;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #101216;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
     }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 12% 10%, rgba(240, 188, 86, .12), transparent 28rem),
-        radial-gradient(circle at 84% 18%, rgba(98, 168, 255, .14), transparent 24rem),
-        linear-gradient(135deg, #0e1214 0%, #15161c 52%, #1d1817 100%);
-      overflow-x: hidden;
+      position: fixed;
+      inset: 0;
     }
 
-    button {
-      font: inherit;
-      color: inherit;
-    }
-
-    .app {
-      width: min(1180px, calc(100vw - 28px));
-      margin: 0 auto;
-      padding: 22px 0 18px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .topbar,
-    .arena,
-    .hand-zone,
-    .log-panel {
-      border: 1px solid rgba(255, 255, 255, .08);
-      background: rgba(25, 29, 35, .88);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-    }
-
-    .topbar {
-      min-height: 68px;
-      border-radius: 8px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      background: conic-gradient(from 210deg, #f0bc56, #e55b55, #62a8ff, #60c891, #f0bc56);
-      color: #14171b;
-      font-weight: 900;
-      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .24);
-      flex: 0 0 auto;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(22px, 4vw, 34px);
-      line-height: 1.05;
-      letter-spacing: 0;
-    }
-
-    .subtitle {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 13px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .stats {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .pill {
-      min-height: 36px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, .04);
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      color: var(--muted);
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .pill strong {
-      color: var(--ink);
-    }
-
-    .arena {
-      border-radius: 8px;
-      min-height: 420px;
-      padding: 18px;
-      display: grid;
-      grid-template-columns: minmax(230px, 1fr) minmax(220px, .72fr) minmax(230px, 1fr);
-      gap: 16px;
-      align-items: stretch;
-    }
-
-    .combatant {
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .025));
-      padding: 16px;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 12px;
-      min-width: 0;
+    .game {
       position: relative;
+      width: 100vw;
+      height: 100vh;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(241, 191, 91, .18), transparent 33vw),
+        linear-gradient(180deg, #181b23 0%, #111318 100%);
       overflow: hidden;
     }
 
-    .combatant::before {
-      content: "";
+    canvas {
       position: absolute;
       inset: 0;
-      background: linear-gradient(120deg, rgba(255, 255, 255, .08), transparent 28%, transparent 70%, rgba(255, 255, 255, .04));
+      width: 100%;
+      height: 100%;
+    }
+
+    .hud {
+      position: absolute;
+      top: max(10px, env(safe-area-inset-top));
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: start;
       pointer-events: none;
+      z-index: 3;
+    }
+
+    .fighter-panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .25);
+    }
+
+    .fighter-panel.right {
+      text-align: right;
     }
 
     .name-row {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .name-row h2 {
-      margin: 0;
-      font-size: 19px;
-      letter-spacing: 0;
-    }
-
-    .intent {
-      padding: 7px 9px;
-      border-radius: 8px;
-      color: #15171a;
-      background: var(--gold);
+      gap: 8px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: clamp(11px, 1.4vw, 14px);
       font-weight: 900;
-      font-size: 12px;
       white-space: nowrap;
     }
 
-    .avatar {
-      display: grid;
-      place-items: center;
-      min-height: 190px;
-      position: relative;
-      z-index: 1;
+    .right .name-row {
+      flex-direction: row-reverse;
     }
 
-    .figure {
-      width: min(76%, 220px);
-      aspect-ratio: 1;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      font-size: clamp(68px, 11vw, 118px);
-      background:
-        radial-gradient(circle at 38% 28%, rgba(255, 255, 255, .34), transparent 18%),
-        linear-gradient(145deg, rgba(98, 168, 255, .9), rgba(96, 200, 145, .75));
-      box-shadow: inset -18px -24px 44px rgba(0, 0, 0, .3), 0 22px 56px rgba(0, 0, 0, .35);
-      transition: transform .18s ease;
-    }
-
-    .enemy .figure {
-      background:
-        radial-gradient(circle at 38% 28%, rgba(255, 255, 255, .28), transparent 18%),
-        linear-gradient(145deg, rgba(229, 91, 85, .95), rgba(240, 188, 86, .72));
-    }
-
-    .hit .figure {
-      animation: hit .3s ease;
-    }
-
-    @keyframes hit {
-      0%, 100% { transform: translateX(0) scale(1); }
-      30% { transform: translateX(-10px) scale(.98); }
-      60% { transform: translateX(8px) scale(1.02); }
-    }
-
-    .bars {
-      display: grid;
-      gap: 9px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .meter-label {
-      display: flex;
-      justify-content: space-between;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .meter {
-      height: 13px;
+    .health {
+      height: 15px;
       border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, .18);
       overflow: hidden;
       background: rgba(0, 0, 0, .35);
-      border: 1px solid rgba(255, 255, 255, .08);
     }
 
-    .fill {
-      height: 100%;
+    .health-fill {
       width: 100%;
+      height: 100%;
       border-radius: inherit;
-      background: linear-gradient(90deg, var(--red), #ff9d68);
-      transition: width .22s ease;
+      background: linear-gradient(90deg, #db4742, #f1985f, #68cf91);
+      transition: width .18s ease;
     }
 
-    .shield-fill {
-      background: linear-gradient(90deg, var(--blue), #9cd3ff);
-    }
-
-    .center {
-      display: grid;
-      gap: 12px;
-      align-content: center;
-      min-width: 0;
-    }
-
-    .turn-card {
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, .04);
-      padding: 14px;
-      display: grid;
-      gap: 12px;
-      text-align: center;
-      min-width: 0;
-    }
-
-    .round {
-      color: var(--muted);
-      font-weight: 900;
-      text-transform: uppercase;
-      font-size: 12px;
-    }
-
-    .energy {
+    .rounds {
       display: flex;
+      align-items: center;
       justify-content: center;
-      gap: 7px;
-      min-height: 36px;
-      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 8px 12px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .25);
+      min-width: 142px;
     }
 
-    .bolt {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
+    .score-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .22);
+      background: rgba(255, 255, 255, .08);
+    }
+
+    .score-dot.on {
+      background: var(--gold);
+      box-shadow: 0 0 16px rgba(241, 191, 91, .42);
+    }
+
+    .round-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .controls {
+      position: absolute;
+      inset: auto max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      height: 34vh;
+      min-height: 148px;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .stick {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: min(28vw, 168px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .16);
+      background: radial-gradient(circle, rgba(255, 255, 255, .10), rgba(255, 255, 255, .045));
+      box-shadow: inset 0 0 28px rgba(255, 255, 255, .05), 0 18px 40px rgba(0, 0, 0, .28);
+      pointer-events: auto;
+    }
+
+    .knob {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 42%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(210, 218, 229, .74));
+      border: 2px solid rgba(255, 255, 255, .36);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .3);
+    }
+
+    .attack-pad {
+      position: absolute;
+      right: 0;
+      bottom: 2px;
+      width: min(26vw, 154px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .18);
+      background:
+        radial-gradient(circle at 38% 30%, rgba(255, 255, 255, .26), transparent 24%),
+        linear-gradient(160deg, rgba(230, 90, 84, .95), rgba(241, 191, 91, .88));
+      color: #191816;
       display: grid;
       place-items: center;
-      background: var(--gold);
-      color: #191713;
+      font-size: clamp(34px, 8vw, 58px);
       font-weight: 950;
-      box-shadow: 0 8px 22px rgba(240, 188, 86, .26);
+      pointer-events: auto;
+      box-shadow: 0 20px 46px rgba(0, 0, 0, .34);
     }
 
-    .bolt.empty {
-      background: rgba(255, 255, 255, .07);
-      color: rgba(255, 255, 255, .28);
-      box-shadow: none;
+    .attack-pad:active,
+    .attack-pad.pressed {
+      transform: scale(.96);
+      filter: brightness(1.08);
     }
 
-    .primary-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
+    .attack-pad span {
+      transform: rotate(-18deg);
+      display: block;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, .18);
     }
 
-    .btn {
-      min-height: 42px;
-      border: 1px solid rgba(255, 255, 255, .12);
-      border-radius: 8px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .055));
-      color: var(--ink);
-      font-weight: 900;
-      cursor: pointer;
-      transition: transform .12s ease, border-color .12s ease, background .12s ease;
-    }
-
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, .28);
-    }
-
-    .btn:disabled {
-      cursor: not-allowed;
-      color: rgba(255, 255, 255, .35);
-      background: rgba(255, 255, 255, .035);
-    }
-
-    .btn.end {
-      background: linear-gradient(180deg, rgba(96, 200, 145, .28), rgba(96, 200, 145, .12));
-      border-color: rgba(96, 200, 145, .36);
-    }
-
-    .draw-piles {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .pile {
+    .message {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      transform: translate(-50%, -50%);
+      width: min(520px, calc(100vw - 40px));
       border-radius: 8px;
       border: 1px solid var(--line);
-      min-height: 70px;
-      display: grid;
-      place-items: center;
-      background:
-        linear-gradient(135deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02)),
-        repeating-linear-gradient(45deg, rgba(255, 255, 255, .05) 0 8px, transparent 8px 16px);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
+      background: rgba(17, 19, 24, .84);
+      backdrop-filter: blur(16px);
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 22px 55px rgba(0, 0, 0, .38);
+      z-index: 5;
     }
 
-    .pile strong {
-      display: block;
-      color: var(--ink);
-      font-size: 20px;
-      margin-bottom: 3px;
+    .message.hide {
+      display: none;
     }
 
-    .hand-zone {
-      border-radius: 8px;
-      padding: 14px;
-      min-height: 242px;
-    }
-
-    .hand-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 12px;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 13px;
-    }
-
-    .hand {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(130px, 1fr));
-      gap: 11px;
-      min-height: 178px;
-    }
-
-    .card {
-      position: relative;
-      min-height: 176px;
-      border: 1px solid rgba(255, 255, 255, .12);
-      border-radius: 8px;
-      background: linear-gradient(180deg, #f7f1e8, #d9d2c4);
-      color: #15171a;
-      padding: 12px;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 10px;
-      cursor: pointer;
-      box-shadow: 0 16px 30px rgba(0, 0, 0, .26);
-      transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
-      overflow: hidden;
-    }
-
-    .card::after {
-      content: "";
-      position: absolute;
-      inset: 8px;
-      border: 1px solid rgba(20, 23, 26, .14);
-      border-radius: 6px;
-      pointer-events: none;
-    }
-
-    .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 24px 40px rgba(0, 0, 0, .32);
-    }
-
-    .card.unplayable {
-      filter: grayscale(.7) brightness(.72);
-      cursor: not-allowed;
-    }
-
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .cost {
-      width: 32px;
-      height: 32px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: #191713;
-      color: var(--gold);
-      font-weight: 950;
-      flex: 0 0 auto;
-    }
-
-    .type {
-      font-size: 12px;
-      font-weight: 900;
-      color: rgba(20, 23, 26, .62);
-    }
-
-    .card h3 {
-      margin: 0;
-      font-size: 18px;
+    .message h1 {
+      margin: 0 0 8px;
+      font-size: clamp(25px, 4vw, 42px);
       letter-spacing: 0;
-      align-self: end;
-      position: relative;
-      z-index: 1;
     }
 
-    .card p {
-      margin: 0;
-      font-weight: 750;
-      color: rgba(20, 23, 26, .78);
-      line-height: 1.35;
-      font-size: 14px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .card.attack { background: linear-gradient(180deg, #ffe4dc, #eac0b3); }
-    .card.skill { background: linear-gradient(180deg, #e1f5ff, #b8d7e5); }
-    .card.power { background: linear-gradient(180deg, #ece0ff, #c9b7e4); }
-    .card.heal { background: linear-gradient(180deg, #dff7e7, #afd9be); }
-
-    .log-panel {
-      border-radius: 8px;
-      min-height: 92px;
-      max-height: 132px;
-      padding: 10px 12px;
-      overflow: auto;
+    .message p {
+      margin: 0 0 14px;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.45;
+      font-size: clamp(13px, 1.8vw, 16px);
     }
 
-    .log-panel b {
-      color: var(--ink);
+    .message button {
+      min-width: 142px;
+      min-height: 44px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(101, 207, 146, .95), rgba(62, 150, 103, .95));
+      color: #101413;
+      font-weight: 950;
+      cursor: pointer;
     }
 
-    .overlay {
+    .tips {
+      position: absolute;
+      top: calc(max(10px, env(safe-area-inset-top)) + 66px);
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: min(640px, 70vw);
+      color: rgba(247, 242, 232, .72);
+      font-size: clamp(11px, 1.4vw, 13px);
+      font-weight: 750;
+      text-align: center;
+      pointer-events: none;
+      z-index: 2;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+    }
+
+    .rotate {
+      display: none;
       position: fixed;
       inset: 0;
-      display: none;
+      z-index: 9;
+      background: #101216;
       place-items: center;
-      background: rgba(0, 0, 0, .62);
-      padding: 20px;
-      z-index: 10;
-    }
-
-    .overlay.show {
-      display: grid;
-    }
-
-    .modal {
-      width: min(440px, 100%);
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, .12);
-      background: #1b2028;
-      box-shadow: var(--shadow);
-      padding: 20px;
+      padding: 24px;
       text-align: center;
     }
 
-    .modal h2 {
-      margin: 0 0 8px;
-      font-size: 30px;
-    }
-
-    .modal p {
-      margin: 0 0 16px;
+    .rotate div {
+      max-width: 330px;
       color: var(--muted);
       line-height: 1.5;
+      font-weight: 800;
     }
 
-    @media (max-width: 920px) {
-      .arena {
-        grid-template-columns: 1fr;
-      }
-
-      .center {
-        order: -1;
-      }
-
-      .hand {
-        grid-template-columns: repeat(2, minmax(130px, 1fr));
-      }
-    }
-
-    @media (max-width: 620px) {
-      .app {
-        width: min(100vw - 18px, 1180px);
-        padding-top: 10px;
-      }
-
-      .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .stats {
-        justify-content: flex-start;
-      }
-
-      .arena,
-      .hand-zone {
-        padding: 10px;
-      }
-
-      .hand {
-        grid-template-columns: 1fr;
-      }
-
-      .card {
-        min-height: 150px;
+    @media (orientation: portrait) and (max-width: 900px) {
+      .rotate {
+        display: grid;
       }
     }
   </style>
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="mark">S</div>
-        <div>
-          <h1>星火牌局</h1>
-          <div class="subtitle">用有限能量打牌，击败三名守门人</div>
-        </div>
-      </div>
-      <div class="stats">
-        <div class="pill">层数 <strong id="stage">1 / 3</strong></div>
-        <div class="pill">连击 <strong id="combo">0</strong></div>
-        <div class="pill">牌组 <strong id="deckCount">0</strong></div>
-      </div>
-    </header>
+  <main class="game">
+    <canvas id="gameCanvas"></canvas>
 
-    <section class="arena" aria-live="polite">
-      <article class="combatant player" id="playerBox">
+    <section class="hud">
+      <div class="fighter-panel">
         <div class="name-row">
-          <h2>旅人</h2>
-          <span class="intent" id="playerState">准备</span>
+          <span>影刃刺客</span>
+          <span id="playerHpText">100%</span>
         </div>
-        <div class="avatar">
-          <div class="figure">◆</div>
-        </div>
-        <div class="bars">
-          <div>
-            <div class="meter-label"><span>生命</span><span id="playerHpText"></span></div>
-            <div class="meter"><div class="fill" id="playerHp"></div></div>
-          </div>
-          <div>
-            <div class="meter-label"><span>护盾</span><span id="playerBlockText"></span></div>
-            <div class="meter"><div class="fill shield-fill" id="playerBlock"></div></div>
-          </div>
-        </div>
-      </article>
+        <div class="health"><div class="health-fill" id="playerHp"></div></div>
+      </div>
 
-      <section class="center">
-        <div class="turn-card">
-          <div class="round" id="turnText">你的回合</div>
-          <div class="energy" id="energy"></div>
-          <div class="primary-actions">
-            <button class="btn end" id="endTurnBtn">结束回合</button>
-            <button class="btn" id="restartBtn">重开</button>
-          </div>
-        </div>
-        <div class="draw-piles">
-          <div class="pile"><span><strong id="drawCount">0</strong>抽牌堆</span></div>
-          <div class="pile"><span><strong id="handCount">0</strong>手牌</span></div>
-          <div class="pile"><span><strong id="discardCount">0</strong>弃牌堆</span></div>
-        </div>
-      </section>
+      <div class="rounds">
+        <span class="score-dot" id="playerWin1"></span>
+        <span class="score-dot" id="playerWin2"></span>
+        <span class="round-label" id="roundLabel">第 1 局</span>
+        <span class="score-dot" id="enemyWin1"></span>
+        <span class="score-dot" id="enemyWin2"></span>
+      </div>
 
-      <article class="combatant enemy" id="enemyBox">
+      <div class="fighter-panel right">
         <div class="name-row">
-          <h2 id="enemyName">灰烬卫士</h2>
-          <span class="intent" id="enemyIntent">攻击 8</span>
+          <span>圣盔骑士</span>
+          <span id="enemyHpText">100%</span>
         </div>
-        <div class="avatar">
-          <div class="figure" id="enemyIcon">▲</div>
-        </div>
-        <div class="bars">
-          <div>
-            <div class="meter-label"><span>生命</span><span id="enemyHpText"></span></div>
-            <div class="meter"><div class="fill" id="enemyHp"></div></div>
-          </div>
-          <div>
-            <div class="meter-label"><span>护盾</span><span id="enemyBlockText"></span></div>
-            <div class="meter"><div class="fill shield-fill" id="enemyBlock"></div></div>
-          </div>
-        </div>
-      </article>
+        <div class="health"><div class="health-fill" id="enemyHp"></div></div>
+      </div>
     </section>
 
-    <section class="hand-zone">
-      <div class="hand-head">
-        <span>手牌</span>
-        <span>点击卡牌打出，费用不能超过当前能量</span>
+    <div class="tips" id="tips">三局两胜 · Q 版中世纪决斗</div>
+
+    <section class="controls">
+      <div class="stick" id="stick" aria-label="移动摇杆">
+        <div class="knob" id="knob"></div>
       </div>
-      <div class="hand" id="hand"></div>
+      <button class="attack-pad" id="attackBtn" aria-label="普通攻击"><span>🗡️</span></button>
     </section>
 
-    <section class="log-panel" id="log"></section>
+    <section class="message" id="message">
+      <h1>迷你角斗士</h1>
+      <p>横屏决斗，三局两胜。影刃刺客对圣盔骑士。</p>
+      <button id="startBtn">开始决斗</button>
+    </section>
+
+    <section class="rotate">
+      <div>请把手机横过来玩。这个版本按抖音小游戏的横屏手感设计。</div>
+    </section>
   </main>
 
-  <div class="overlay" id="overlay">
-    <div class="modal">
-      <h2 id="modalTitle">胜利</h2>
-      <p id="modalText">你点燃了最后一张星火牌。</p>
-      <button class="btn end" id="modalBtn">再来一局</button>
-    </div>
-  </div>
-
   <script>
-    const cardLibrary = [
-      { id: "strike", name: "迅击", type: "attack", label: "攻击", cost: 1, text: "造成 7 点伤害。", play: s => damageEnemy(s, 7) },
-      { id: "guard", name: "架盾", type: "skill", label: "技能", cost: 1, text: "获得 8 点护盾。", play: s => gainBlock(s.player, 8) },
-      { id: "spark", name: "星火", type: "attack", label: "攻击", cost: 0, text: "造成 3 点伤害，抽 1 张牌。", play: s => { damageEnemy(s, 3); drawCards(s, 1); } },
-      { id: "focus", name: "凝神", type: "power", label: "战术", cost: 1, text: "抽 2 张牌。", play: s => drawCards(s, 2) },
-      { id: "riposte", name: "反制", type: "skill", label: "技能", cost: 2, text: "获得 7 点护盾，并造成等量伤害。", play: s => { gainBlock(s.player, 7); damageEnemy(s, 7); } },
-      { id: "flare", name: "耀斩", type: "attack", label: "攻击", cost: 2, text: "造成 13 点伤害。", play: s => damageEnemy(s, 13) },
-      { id: "mend", name: "回春", type: "heal", label: "恢复", cost: 1, text: "恢复 6 点生命。", play: s => heal(s.player, 6) },
-      { id: "surge", name: "充能", type: "power", label: "战术", cost: 0, text: "获得 1 点能量。", play: s => { s.energy = Math.min(5, s.energy + 1); log("星火回流，获得 <b>1</b> 点能量。"); } },
-      { id: "breaker", name: "破甲", type: "attack", label: "攻击", cost: 1, text: "造成 5 点伤害，移除敌方护盾。", play: s => { s.enemy.block = 0; damageEnemy(s, 5); } },
-      { id: "bulwark", name: "壁垒", type: "skill", label: "技能", cost: 2, text: "获得 15 点护盾。", play: s => gainBlock(s.player, 15) }
-    ];
-
-    const enemies = [
-      { name: "灰烬卫士", icon: "▲", maxHp: 46, damage: [7, 9, 11], block: 8 },
-      { name: "镜刃术士", icon: "✦", maxHp: 58, damage: [8, 10, 14], block: 10 },
-      { name: "熔星巨像", icon: "●", maxHp: 78, damage: [10, 13, 17], block: 12 }
-    ];
-
+    const canvas = document.querySelector("#gameCanvas");
+    const ctx = canvas.getContext("2d");
     const els = {
-      stage: document.querySelector("#stage"),
-      combo: document.querySelector("#combo"),
-      deckCount: document.querySelector("#deckCount"),
-      playerState: document.querySelector("#playerState"),
-      playerHpText: document.querySelector("#playerHpText"),
       playerHp: document.querySelector("#playerHp"),
-      playerBlockText: document.querySelector("#playerBlockText"),
-      playerBlock: document.querySelector("#playerBlock"),
-      enemyName: document.querySelector("#enemyName"),
-      enemyIntent: document.querySelector("#enemyIntent"),
-      enemyIcon: document.querySelector("#enemyIcon"),
-      enemyHpText: document.querySelector("#enemyHpText"),
       enemyHp: document.querySelector("#enemyHp"),
-      enemyBlockText: document.querySelector("#enemyBlockText"),
-      enemyBlock: document.querySelector("#enemyBlock"),
-      turnText: document.querySelector("#turnText"),
-      energy: document.querySelector("#energy"),
-      hand: document.querySelector("#hand"),
-      drawCount: document.querySelector("#drawCount"),
-      handCount: document.querySelector("#handCount"),
-      discardCount: document.querySelector("#discardCount"),
-      log: document.querySelector("#log"),
-      endTurnBtn: document.querySelector("#endTurnBtn"),
-      restartBtn: document.querySelector("#restartBtn"),
-      overlay: document.querySelector("#overlay"),
-      modalTitle: document.querySelector("#modalTitle"),
-      modalText: document.querySelector("#modalText"),
-      modalBtn: document.querySelector("#modalBtn"),
-      playerBox: document.querySelector("#playerBox"),
-      enemyBox: document.querySelector("#enemyBox")
+      playerHpText: document.querySelector("#playerHpText"),
+      enemyHpText: document.querySelector("#enemyHpText"),
+      roundLabel: document.querySelector("#roundLabel"),
+      message: document.querySelector("#message"),
+      startBtn: document.querySelector("#startBtn"),
+      attackBtn: document.querySelector("#attackBtn"),
+      stick: document.querySelector("#stick"),
+      knob: document.querySelector("#knob"),
+      tips: document.querySelector("#tips"),
+      playerWins: [document.querySelector("#playerWin1"), document.querySelector("#playerWin2")],
+      enemyWins: [document.querySelector("#enemyWin1"), document.querySelector("#enemyWin2")]
     };
 
-    let state;
+    const hitTable = [
+      { part: "head", label: "头部", damage: 50 },
+      { part: "neck", label: "脖子", damage: 25 },
+      { part: "upper", label: "上身", damage: 15 },
+      { part: "belly", label: "腹部", damage: 10 },
+      { part: "limb", label: "手脚", damage: 5 }
+    ];
 
-    function cloneCard(id) {
-      const base = cardLibrary.find(card => card.id === id);
-      return { ...base, uid: crypto.randomUUID() };
+    let W = 0;
+    let H = 0;
+    let dpr = 1;
+    let lastTime = 0;
+    let game;
+    let stickPointer = null;
+    const input = { x: 0, y: 0, attacking: false };
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = Math.floor(W * dpr);
+      canvas.height = Math.floor(H * dpr);
+      canvas.style.width = `${W}px`;
+      canvas.style.height = `${H}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (game) resetPositions();
     }
 
-    function shuffle(cards) {
-      const arr = [...cards];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    function startGame() {
-      state = {
-        stage: 0,
+    function makeGame() {
+      return {
+        mode: "menu",
         round: 1,
-        maxEnergy: 3,
-        energy: 3,
-        combo: 0,
-        player: { hp: 70, maxHp: 70, block: 0 },
-        enemy: null,
-        draw: [],
-        hand: [],
-        discard: [],
-        intent: null,
-        playing: true
+        playerScore: 0,
+        enemyScore: 0,
+        messageTimer: 0,
+        toast: "",
+        toastTimer: 0,
+        particles: [],
+        player: fighter("assassin", 0),
+        enemy: fighter("knight", 1)
       };
-
-      const starter = [
-        "strike", "strike", "strike", "strike",
-        "guard", "guard", "spark", "focus",
-        "riposte", "flare", "mend", "surge"
-      ].map(cloneCard);
-
-      state.draw = shuffle(starter);
-      setupEnemy();
-      drawCards(state, 5, false);
-      log("牌局开始。敌人正在观察你的节奏。", true);
-      render();
     }
 
-    function setupEnemy() {
-      const template = enemies[state.stage];
-      state.enemy = {
-        name: template.name,
-        icon: template.icon,
-        hp: template.maxHp,
-        maxHp: template.maxHp,
-        block: 0,
-        damage: template.damage,
-        blockMove: template.block
+    function fighter(kind, side) {
+      return {
+        kind,
+        side,
+        x: side === 0 ? W * .28 : W * .72,
+        y: H * .64,
+        vx: 0,
+        vy: 0,
+        dir: side === 0 ? 1 : -1,
+        hp: 100,
+        neckHits: 0,
+        attack: 0,
+        cooldown: 0,
+        hurt: 0,
+        step: 0,
+        aiThink: 0,
+        aiMove: 0,
+        aiBack: false
       };
-      chooseIntent();
     }
 
-    function chooseIntent() {
-      const roll = Math.random();
-      if (roll < .68) {
-        const amount = state.enemy.damage[Math.floor(Math.random() * state.enemy.damage.length)];
-        state.intent = { type: "attack", amount, text: `攻击 ${amount}` };
-      } else {
-        state.intent = { type: "block", amount: state.enemy.blockMove, text: `护盾 ${state.enemy.blockMove}` };
+    function resetPositions() {
+      game.player.x = W * .28;
+      game.player.y = H * .65;
+      game.enemy.x = W * .72;
+      game.enemy.y = H * .65;
+      game.player.dir = 1;
+      game.enemy.dir = -1;
+    }
+
+    function startMatch() {
+      game = makeGame();
+      game.mode = "playing";
+      els.message.classList.add("hide");
+      els.tips.style.display = "none";
+      startRound();
+    }
+
+    function startRound() {
+      const pScore = game.playerScore;
+      const eScore = game.enemyScore;
+      const round = game.round;
+      game.player = fighter("assassin", 0);
+      game.enemy = fighter("knight", 1);
+      game.playerScore = pScore;
+      game.enemyScore = eScore;
+      game.round = round;
+      game.mode = "playing";
+      resetPositions();
+      showToast(`第 ${game.round} 局`);
+      updateHud();
+    }
+
+    function showToast(text) {
+      game.toast = text;
+      game.toastTimer = 1.25;
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function update(dt) {
+      if (!game) return;
+      game.particles = game.particles.filter(p => (p.life -= dt) > 0);
+      game.particles.forEach(p => {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 320 * dt;
+      });
+      if (game.toastTimer > 0) game.toastTimer -= dt;
+
+      if (game.mode !== "playing") {
+        draw();
+        return;
       }
+
+      updatePlayer(dt);
+      updateEnemy(dt);
+      updateFighter(game.player, dt);
+      updateFighter(game.enemy, dt);
+      tryHit(game.player, game.enemy);
+      tryHit(game.enemy, game.player);
+      updateHud();
+      draw();
     }
 
-    function drawCards(s, count, announce = true) {
+    function updatePlayer(dt) {
+      const f = game.player;
+      const speed = 230;
+      f.vx = input.x * speed;
+      f.vy = input.y * speed * .52;
+      if (Math.abs(input.x) > .08) f.dir = input.x > 0 ? 1 : -1;
+    }
+
+    function updateEnemy(dt) {
+      const ai = game.enemy;
+      const player = game.player;
+      const dist = player.x - ai.x;
+      ai.dir = dist >= 0 ? 1 : -1;
+      ai.aiThink -= dt;
+      if (ai.aiThink <= 0) {
+        ai.aiThink = .35 + Math.random() * .35;
+        ai.aiBack = Math.abs(dist) < 78 && Math.random() < .3;
+        ai.aiMove = Math.abs(dist) > 98 ? Math.sign(dist) : (ai.aiBack ? -Math.sign(dist) : 0);
+        if (Math.abs(dist) < 132 && Math.abs(player.y - ai.y) < 74 && Math.random() < .72) {
+          startAttack(ai);
+        }
+      }
+      ai.vx = ai.aiMove * 185;
+      const lane = player.y + (Math.random() - .5) * 32;
+      ai.vy = clamp(lane - ai.y, -70, 70);
+    }
+
+    function updateFighter(f, dt) {
+      const arena = arenaBounds();
+      f.x = clamp(f.x + f.vx * dt, arena.left, arena.right);
+      f.y = clamp(f.y + f.vy * dt, arena.top, arena.bottom);
+      f.step += Math.abs(f.vx) * dt * .02;
+      f.cooldown = Math.max(0, f.cooldown - dt);
+      f.attack = Math.max(0, f.attack - dt);
+      f.hurt = Math.max(0, f.hurt - dt);
+    }
+
+    function startAttack(f) {
+      if (game.mode !== "playing" || f.cooldown > 0) return;
+      f.attack = .28;
+      f.cooldown = .58;
+    }
+
+    function tryHit(attacker, defender) {
+      if (attacker.attack <= 0 || attacker.attack > .16 || attacker.didHit) return;
+      attacker.didHit = true;
+      setTimeout(() => { attacker.didHit = false; }, 220);
+
+      const reach = attacker.kind === "knight" ? 112 : 104;
+      const tip = {
+        x: attacker.x + attacker.dir * reach,
+        y: attacker.y - 88 + Math.sin(attacker.step) * 8
+      };
+      const boxes = bodyBoxes(defender);
+      const hit = boxes.find(box =>
+        tip.x >= box.x && tip.x <= box.x + box.w &&
+        tip.y >= box.y && tip.y <= box.y + box.h
+      );
+      if (!hit) return;
+
+      defender.hp = Math.max(0, defender.hp - hit.damage);
+      defender.hurt = .28;
+      if (hit.part === "neck") {
+        defender.neckHits += 1;
+        if (defender.neckHits >= 3) {
+          defender.hp = 0;
+          burst(defender.x, defender.y - 138, "#f1bf5b", 18);
+          showToast(`${nameOf(attacker)} 三次命中脖子，直接击倒！`);
+        }
+      }
+
+      burst(tip.x, tip.y, hit.part === "head" ? "#f1bf5b" : "#f7f2e8", 9);
+      showToast(`${nameOf(attacker)} 命中${hit.label} -${hit.damage}%`);
+      if (defender.hp <= 0) finishRound(attacker.side === 0 ? "player" : "enemy");
+    }
+
+    function finishRound(winner) {
+      if (game.mode !== "playing") return;
+      game.mode = "roundEnd";
+      if (winner === "player") game.playerScore += 1;
+      else game.enemyScore += 1;
+      updateHud();
+
+      if (game.playerScore >= 2 || game.enemyScore >= 2) {
+        const won = game.playerScore > game.enemyScore;
+        window.setTimeout(() => endMatch(won), 900);
+        return;
+      }
+
+      game.round += 1;
+      window.setTimeout(startRound, 1050);
+    }
+
+    function endMatch(won) {
+      game.mode = "done";
+      els.message.classList.remove("hide");
+      els.tips.style.display = "";
+      els.message.querySelector("h1").textContent = won ? "刺客胜利" : "骑士胜利";
+      els.message.querySelector("p").textContent = `比分 ${game.playerScore}:${game.enemyScore}。再来一场，练一下走位和出剑距离。`;
+      els.startBtn.textContent = "再来一局";
+    }
+
+    function arenaBounds() {
+      return {
+        left: W * .12,
+        right: W * .88,
+        top: H * .48,
+        bottom: H * .82
+      };
+    }
+
+    function bodyBoxes(f) {
+      const scale = scaleOf();
+      const x = f.x;
+      const y = f.y;
+      return [
+        { part: "head", label: "头部", damage: 50, x: x - 23 * scale, y: y - 164 * scale, w: 46 * scale, h: 38 * scale },
+        { part: "neck", label: "脖子", damage: 25, x: x - 14 * scale, y: y - 126 * scale, w: 28 * scale, h: 18 * scale },
+        { part: "upper", label: "上身", damage: 15, x: x - 32 * scale, y: y - 108 * scale, w: 64 * scale, h: 42 * scale },
+        { part: "belly", label: "腹部", damage: 10, x: x - 28 * scale, y: y - 66 * scale, w: 56 * scale, h: 34 * scale },
+        { part: "limb", label: "手脚", damage: 5, x: x - 54 * scale, y: y - 94 * scale, w: 108 * scale, h: 112 * scale }
+      ];
+    }
+
+    function nameOf(f) {
+      return f.kind === "assassin" ? "刺客" : "骑士";
+    }
+
+    function burst(x, y, color, count) {
       for (let i = 0; i < count; i++) {
-        if (!s.draw.length) {
-          if (!s.discard.length) break;
-          s.draw = shuffle(s.discard);
-          s.discard = [];
-          if (announce) log("弃牌堆洗回抽牌堆。");
-        }
-        if (s.hand.length >= 7) break;
-        s.hand.push(s.draw.pop());
-      }
-      render();
-    }
-
-    function damageEnemy(s, amount) {
-      dealDamage(s.enemy, amount, els.enemyBox);
-      log(`你造成 <b>${amount}</b> 点伤害。`);
-    }
-
-    function dealDamage(target, amount, box) {
-      const blocked = Math.min(target.block, amount);
-      target.block -= blocked;
-      target.hp = Math.max(0, target.hp - (amount - blocked));
-      box.classList.remove("hit");
-      void box.offsetWidth;
-      box.classList.add("hit");
-    }
-
-    function gainBlock(target, amount) {
-      target.block += amount;
-      log(`获得 <b>${amount}</b> 点护盾。`);
-    }
-
-    function heal(target, amount) {
-      const before = target.hp;
-      target.hp = Math.min(target.maxHp, target.hp + amount);
-      log(`恢复 <b>${target.hp - before}</b> 点生命。`);
-    }
-
-    function playCard(uid) {
-      if (!state.playing) return;
-      const index = state.hand.findIndex(card => card.uid === uid);
-      if (index === -1) return;
-      const card = state.hand[index];
-      if (card.cost > state.energy) {
-        log(`能量不足，无法打出 <b>${card.name}</b>。`);
-        return;
-      }
-
-      state.energy -= card.cost;
-      state.combo += 1;
-      state.hand.splice(index, 1);
-      state.discard.push(card);
-      log(`打出 <b>${card.name}</b>。`);
-      card.play(state);
-
-      if (state.combo > 0 && state.combo % 4 === 0) {
-        log("连击奖励：抽 <b>1</b> 张牌。");
-        drawCards(state, 1, false);
-      }
-
-      if (state.enemy.hp <= 0) {
-        winStage();
-      }
-      render();
-    }
-
-    function endTurn() {
-      if (!state.playing) return;
-      state.playing = false;
-      state.discard.push(...state.hand);
-      state.hand = [];
-      state.player.block = Math.ceil(state.player.block * .35);
-      render();
-
-      window.setTimeout(() => {
-        enemyAction();
-        if (state.player.hp <= 0) {
-          endGame(false);
-          return;
-        }
-        startPlayerTurn();
-      }, 520);
-    }
-
-    function enemyAction() {
-      if (state.intent.type === "attack") {
-        dealDamage(state.player, state.intent.amount, els.playerBox);
-        log(`${state.enemy.name} 造成 <b>${state.intent.amount}</b> 点伤害。`);
-      } else {
-        gainBlock(state.enemy, state.intent.amount);
-        log(`${state.enemy.name} 获得护盾。`);
-      }
-      render();
-    }
-
-    function startPlayerTurn() {
-      state.round += 1;
-      state.combo = 0;
-      state.energy = state.maxEnergy;
-      state.player.block = Math.ceil(state.player.block * .5);
-      chooseIntent();
-      drawCards(state, 5);
-      state.playing = true;
-      log(`第 <b>${state.round}</b> 回合。`);
-      render();
-    }
-
-    function winStage() {
-      log(`<b>${state.enemy.name}</b> 被击败。`);
-      state.stage += 1;
-
-      if (state.stage >= enemies.length) {
-        endGame(true);
-        return;
-      }
-
-      state.maxEnergy = Math.min(5, state.maxEnergy + 1);
-      heal(state.player, 10);
-      state.player.block = 0;
-      state.hand = [];
-      state.discard.push(cloneCard(["breaker", "bulwark", "flare"][state.stage - 1]));
-      setupEnemy();
-      state.energy = state.maxEnergy;
-      drawCards(state, 5);
-      log("新的卡牌加入弃牌堆，最大能量提升。");
-    }
-
-    function endGame(won) {
-      state.playing = false;
-      els.overlay.classList.add("show");
-      els.modalTitle.textContent = won ? "胜利" : "倒下了";
-      els.modalText.textContent = won
-        ? "你击败了三名守门人，星火牌组仍在发烫。"
-        : "牌堆沉寂了下来，但下一局会更锋利。";
-      render();
-    }
-
-    function log(message, reset = false) {
-      if (reset) els.log.innerHTML = "";
-      const line = document.createElement("div");
-      line.innerHTML = message;
-      els.log.prepend(line);
-    }
-
-    function pct(value, max) {
-      return `${Math.max(0, Math.min(100, (value / max) * 100))}%`;
-    }
-
-    function renderEnergy() {
-      els.energy.innerHTML = "";
-      for (let i = 0; i < state.maxEnergy; i++) {
-        const bolt = document.createElement("div");
-        bolt.className = `bolt${i >= state.energy ? " empty" : ""}`;
-        bolt.textContent = "⚡";
-        els.energy.appendChild(bolt);
+        const a = Math.random() * Math.PI * 2;
+        const s = 80 + Math.random() * 180;
+        game.particles.push({
+          x, y,
+          vx: Math.cos(a) * s,
+          vy: Math.sin(a) * s - 40,
+          life: .35 + Math.random() * .35,
+          color
+        });
       }
     }
 
-    function renderHand() {
-      els.hand.innerHTML = "";
-      for (const card of state.hand) {
-        const el = document.createElement("button");
-        el.className = `card ${card.type}${card.cost > state.energy || !state.playing ? " unplayable" : ""}`;
-        el.type = "button";
-        el.innerHTML = `
-          <div class="card-top">
-            <span class="cost">${card.cost}</span>
-            <span class="type">${card.label}</span>
-          </div>
-          <h3>${card.name}</h3>
-          <p>${card.text}</p>
-        `;
-        el.addEventListener("click", () => playCard(card.uid));
-        els.hand.appendChild(el);
+    function updateHud() {
+      const p = Math.round(game.player.hp);
+      const e = Math.round(game.enemy.hp);
+      els.playerHp.style.width = `${p}%`;
+      els.enemyHp.style.width = `${e}%`;
+      els.playerHpText.textContent = `${p}%`;
+      els.enemyHpText.textContent = `${e}%`;
+      els.roundLabel.textContent = `第 ${game.round} 局`;
+      els.playerWins.forEach((dot, i) => dot.classList.toggle("on", i < game.playerScore));
+      els.enemyWins.forEach((dot, i) => dot.classList.toggle("on", i < game.enemyScore));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      drawArena();
+      const fighters = [game.player, game.enemy].sort((a, b) => a.y - b.y);
+      fighters.forEach(drawFighter);
+      drawParticles();
+      if (game.toastTimer > 0) drawToast();
+    }
+
+    function drawArena() {
+      const cx = W / 2;
+      const cy = H * .66;
+      ctx.fillStyle = "#151820";
+      ctx.fillRect(0, 0, W, H);
+
+      const sky = ctx.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#222839");
+      sky.addColorStop(.48, "#171b22");
+      sky.addColorStop(1, "#111318");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = "#242024";
+      ctx.fillRect(0, H * .36, W, H * .08);
+      for (let i = 0; i < 11; i++) {
+        ctx.fillStyle = i % 2 ? "#3a2b2a" : "#4a3430";
+        ctx.fillRect(i * W / 11, H * .33 + (i % 3) * 5, W / 11 - 3, H * .09);
+      }
+
+      ctx.fillStyle = "#6b5243";
+      ctx.fillRect(0, H * .42, W, 20);
+      ctx.fillStyle = "#8f704f";
+      ctx.fillRect(0, H * .44, W, 8);
+
+      const floor = ctx.createRadialGradient(cx, cy, 20, cx, cy, Math.max(W, H) * .58);
+      floor.addColorStop(0, "#947552");
+      floor.addColorStop(.62, "#604b39");
+      floor.addColorStop(1, "#2a2522");
+      ctx.fillStyle = floor;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, W * .43, H * .25, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,255,255,.18)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, W * .43, H * .25, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(20,16,12,.28)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 10; i++) {
+        const yy = H * .5 + i * H * .035;
+        ctx.beginPath();
+        ctx.ellipse(cx, yy, W * (.12 + i * .035), 7, 0, 0, Math.PI * 2);
+        ctx.stroke();
       }
     }
 
-    function render() {
-      if (!state) return;
-      els.stage.textContent = `${Math.min(state.stage + 1, enemies.length)} / ${enemies.length}`;
-      els.combo.textContent = state.combo;
-      els.deckCount.textContent = state.draw.length + state.hand.length + state.discard.length;
-      els.playerState.textContent = state.playing ? "你的回合" : "敌方行动";
-      els.playerHpText.textContent = `${state.player.hp} / ${state.player.maxHp}`;
-      els.playerHp.style.width = pct(state.player.hp, state.player.maxHp);
-      els.playerBlockText.textContent = state.player.block;
-      els.playerBlock.style.width = pct(state.player.block, 30);
-
-      els.enemyName.textContent = state.enemy.name;
-      els.enemyIcon.textContent = state.enemy.icon;
-      els.enemyIntent.textContent = state.intent.text;
-      els.enemyHpText.textContent = `${state.enemy.hp} / ${state.enemy.maxHp}`;
-      els.enemyHp.style.width = pct(state.enemy.hp, state.enemy.maxHp);
-      els.enemyBlockText.textContent = state.enemy.block;
-      els.enemyBlock.style.width = pct(state.enemy.block, 30);
-
-      els.turnText.textContent = state.playing ? `第 ${state.round} 回合` : "敌方行动";
-      els.drawCount.textContent = state.draw.length;
-      els.handCount.textContent = state.hand.length;
-      els.discardCount.textContent = state.discard.length;
-      els.endTurnBtn.disabled = !state.playing;
-
-      renderEnergy();
-      renderHand();
+    function scaleOf() {
+      return clamp(Math.min(W / 820, H / 390), .72, 1.14);
     }
 
-    els.endTurnBtn.addEventListener("click", endTurn);
-    els.restartBtn.addEventListener("click", () => {
-      els.overlay.classList.remove("show");
-      startGame();
+    function drawFighter(f) {
+      const s = scaleOf();
+      const x = f.x;
+      const y = f.y;
+      const flip = f.dir;
+      const bob = Math.sin(f.step * 2) * 3;
+      const hurtShift = f.hurt > 0 ? (Math.random() - .5) * 6 : 0;
+      ctx.save();
+      ctx.translate(x + hurtShift, y + bob);
+      ctx.scale(flip * s, s);
+
+      ctx.fillStyle = "rgba(0,0,0,.28)";
+      ctx.beginPath();
+      ctx.ellipse(0, 4, 54, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (f.kind === "assassin") drawAssassin(f);
+      else drawKnight(f);
+
+      if (f.attack > 0) drawSwordArc(f);
+      ctx.restore();
+    }
+
+    function drawAssassin(f) {
+      const cape = f.attack > 0 ? -12 : -4;
+      ctx.fillStyle = "#23242d";
+      ctx.beginPath();
+      ctx.moveTo(-28, -108);
+      ctx.quadraticCurveTo(-82, -68, -46 + cape, -10);
+      ctx.lineTo(14, -24);
+      ctx.quadraticCurveTo(22, -86, -28, -108);
+      ctx.fill();
+
+      ctx.fillStyle = "#3a3d49";
+      roundRect(-31, -108, 62, 78, 18);
+      ctx.fill();
+      ctx.fillStyle = "#7d493f";
+      roundRect(-24, -68, 48, 30, 12);
+      ctx.fill();
+
+      ctx.fillStyle = "#efe0c8";
+      ctx.beginPath();
+      ctx.arc(0, -137, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#20242d";
+      ctx.beginPath();
+      ctx.moveTo(-34, -148);
+      ctx.quadraticCurveTo(0, -190, 35, -148);
+      ctx.lineTo(26, -128);
+      ctx.quadraticCurveTo(0, -141, -28, -128);
+      ctx.fill();
+      ctx.fillStyle = "#111318";
+      ctx.beginPath();
+      ctx.arc(10, -137, 4, 0, Math.PI * 2);
+      ctx.arc(-10, -137, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#111318";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-12, -126);
+      ctx.quadraticCurveTo(0, -119, 13, -126);
+      ctx.stroke();
+
+      drawLimb(-25, -83, -54, -43, "#3a3d49", 12);
+      drawLimb(25, -82, 48, -52, "#3a3d49", 12);
+      drawLimb(-15, -33, -32, 0, "#292b34", 13);
+      drawLimb(17, -33, 35, 0, "#292b34", 13);
+      drawSmallBlade(48, -52, 1);
+    }
+
+    function drawKnight(f) {
+      ctx.fillStyle = "#d7dde5";
+      roundRect(-34, -110, 68, 82, 18);
+      ctx.fill();
+      ctx.fillStyle = "#7593ba";
+      roundRect(-25, -96, 50, 50, 14);
+      ctx.fill();
+      ctx.fillStyle = "#d8c073";
+      roundRect(-16, -86, 32, 20, 8);
+      ctx.fill();
+
+      ctx.fillStyle = "#e8edf2";
+      ctx.beginPath();
+      ctx.arc(0, -139, 32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#6f7d8e";
+      ctx.fillRect(-26, -144, 52, 10);
+      ctx.fillStyle = "#15171b";
+      ctx.fillRect(-16, -144, 32, 4);
+      ctx.fillStyle = "#efe0c8";
+      ctx.beginPath();
+      ctx.arc(0, -130, 12, 0, Math.PI);
+      ctx.fill();
+
+      drawLimb(-27, -84, -58, -48, "#bfc8d2", 13);
+      drawLimb(28, -83, 50, -52, "#bfc8d2", 13);
+      drawLimb(-16, -33, -34, 0, "#9caabc", 14);
+      drawLimb(18, -33, 38, 0, "#9caabc", 14);
+      drawSmallBlade(52, -52, 1.18);
+    }
+
+    function drawLimb(x1, y1, x2, y2, color, width) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    function drawSmallBlade(x, y, size) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-.42);
+      ctx.fillStyle = "#dfe7f0";
+      ctx.beginPath();
+      ctx.moveTo(0, -5 * size);
+      ctx.lineTo(62 * size, -1 * size);
+      ctx.lineTo(0, 5 * size);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#7a523f";
+      ctx.fillRect(-10 * size, -4 * size, 16 * size, 8 * size);
+      ctx.restore();
+    }
+
+    function drawSwordArc(f) {
+      const t = 1 - f.attack / .28;
+      ctx.strokeStyle = "rgba(247,242,232,.72)";
+      ctx.lineWidth = 8;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(46, -88, 70, -1.1 + t * .8, -.2 + t * .9);
+      ctx.stroke();
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function drawParticles() {
+      for (const p of game.particles) {
+        ctx.globalAlpha = clamp(p.life * 2.5, 0, 1);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawToast() {
+      ctx.save();
+      ctx.globalAlpha = clamp(game.toastTimer, 0, 1);
+      ctx.font = `900 ${Math.max(18, Math.min(28, W * .026))}px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const text = game.toast;
+      const width = ctx.measureText(text).width + 42;
+      const x = W / 2 - width / 2;
+      const y = H * .22;
+      ctx.fillStyle = "rgba(16,18,22,.72)";
+      roundRect(x, y, width, 48, 8);
+      ctx.fill();
+      ctx.fillStyle = "#f7f2e8";
+      ctx.fillText(text, W / 2, y + 24);
+      ctx.restore();
+    }
+
+    function loop(time) {
+      const dt = Math.min(.033, (time - lastTime) / 1000 || .016);
+      lastTime = time;
+      update(dt);
+      requestAnimationFrame(loop);
+    }
+
+    function stickCenter() {
+      const rect = els.stick.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, r: rect.width * .36 };
+    }
+
+    function moveStick(clientX, clientY) {
+      const c = stickCenter();
+      const dx = clientX - c.x;
+      const dy = clientY - c.y;
+      const len = Math.hypot(dx, dy);
+      const n = len > c.r ? c.r / len : 1;
+      const x = dx * n;
+      const y = dy * n;
+      input.x = x / c.r;
+      input.y = y / c.r;
+      els.knob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+    }
+
+    function resetStick() {
+      input.x = 0;
+      input.y = 0;
+      stickPointer = null;
+      els.knob.style.transform = "translate(-50%, -50%)";
+    }
+
+    els.stick.addEventListener("pointerdown", event => {
+      stickPointer = event.pointerId;
+      els.stick.setPointerCapture(event.pointerId);
+      moveStick(event.clientX, event.clientY);
     });
-    els.modalBtn.addEventListener("click", () => {
-      els.overlay.classList.remove("show");
-      startGame();
+
+    els.stick.addEventListener("pointermove", event => {
+      if (event.pointerId === stickPointer) moveStick(event.clientX, event.clientY);
     });
 
-    startGame();
+    els.stick.addEventListener("pointerup", resetStick);
+    els.stick.addEventListener("pointercancel", resetStick);
+
+    els.attackBtn.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      els.attackBtn.classList.add("pressed");
+      startAttack(game.player);
+    });
+
+    els.attackBtn.addEventListener("pointerup", () => els.attackBtn.classList.remove("pressed"));
+    els.attackBtn.addEventListener("pointercancel", () => els.attackBtn.classList.remove("pressed"));
+
+    window.addEventListener("keydown", event => {
+      if (event.key === " " || event.key.toLowerCase() === "j") startAttack(game.player);
+      if (event.key === "a" || event.key === "ArrowLeft") input.x = -1;
+      if (event.key === "d" || event.key === "ArrowRight") input.x = 1;
+      if (event.key === "w" || event.key === "ArrowUp") input.y = -1;
+      if (event.key === "s" || event.key === "ArrowDown") input.y = 1;
+    });
+
+    window.addEventListener("keyup", event => {
+      if (["a", "d", "ArrowLeft", "ArrowRight"].includes(event.key)) input.x = 0;
+      if (["w", "s", "ArrowUp", "ArrowDown"].includes(event.key)) input.y = 0;
+    });
+
+    els.startBtn.addEventListener("click", startMatch);
+    window.addEventListener("resize", resize);
+    window.addEventListener("orientationchange", () => window.setTimeout(resize, 160));
+
+    resize();
+    game = makeGame();
+    updateHud();
+    if (new URLSearchParams(window.location.search).get("autostart") === "1") {
+      startMatch();
+    }
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
